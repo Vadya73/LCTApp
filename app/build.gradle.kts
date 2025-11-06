@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation("io.github.fornewid:material-motion-compose-core:2.0.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

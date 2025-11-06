@@ -2,62 +2,76 @@ package app.vv.lifecalendartracker
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.vv.lifecalendartracker.ui.theme.LCTAppTheme
+import soup.compose.material.motion.circularReveal
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             LCTAppTheme {
+                var showAdd by remember { mutableStateOf(false) }
+
+                BackHandler(enabled = showAdd) {
+                    showAdd = false
+                }
+
                 Scaffold(
                     floatingActionButton = {
-                        AddHabitButton()
+                        if (!showAdd) {
+                            AddHabitFab { showAdd = true }
+                        }
                     },
                     content = { padding: PaddingValues ->
-                        Column(
+
+                        Box(
                             modifier = Modifier
                                 .padding(padding)
-                                .fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Top
+                                .fillMaxSize()
                         ) {
-                            HeaderSection()
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Top
+                            ) {
+                                HeaderSection()
+                            }
+
+                            if (showAdd) {
+                                AddHabitScreenAnimated(
+                                    visible = showAdd,
+                                    onClose = { showAdd = false }
+                                )
+                            }
+
                         }
                     }
                 )
@@ -66,7 +80,158 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun HeaderSection(){
+    fun AddHabitScreenAnimated(
+        visible: Boolean,
+        onClose: () -> Unit
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding()
+                .background(Color.White)
+                .padding(18.dp)
+                .circularReveal(
+                    visible = visible,
+                    center = { fullSize ->
+                        Offset(
+                            fullSize.width.toFloat(),
+                            fullSize.height.toFloat()
+                        )
+                    }
+                )
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                IconButton(
+                    onClick = onClose,
+                    modifier = Modifier
+                        .size(52.dp)
+                        .semantics { contentDescription = "Back" }
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        tint = Color.Black,
+                        contentDescription = null,
+                        modifier = Modifier.size(52.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                Box(Modifier
+                    .fillMaxWidth()
+                    .height(256.dp)
+                    .background(Color.LightGray),
+                    contentAlignment = Alignment.TopCenter,
+                ){
+                    Image(
+                        painter = painterResource(R.drawable.ic_no_ad),
+                        contentDescription = "",
+                        modifier = Modifier
+                            .size(256.dp)
+                            .clip(CircleShape),
+                    )
+                }
+                Column(Modifier
+                    .fillMaxWidth()
+                    .height(128.dp)
+                    .background(Color.Black),
+                    verticalArrangement = Arrangement.Top
+
+                    ) {
+                    Text(
+                        text = "Исключаю из жизни",
+                        textAlign = TextAlign.Left,
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(16.dp))
+
+                    var textValue by remember { mutableStateOf("") }
+                    TextField(
+                        value = textValue,
+                        onValueChange = {textValue = it},
+                        placeholder = {
+                            Text(text = "Что вы хотите исключить",
+                            textAlign = TextAlign.Left,
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold)},
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                Column(Modifier
+                    .fillMaxWidth()
+                    .height(128.dp)
+                    .background(Color.Black),
+                    verticalArrangement = Arrangement.Top
+
+                ) {
+                    Text(
+                        text = "Начиная с",
+                        textAlign = TextAlign.Left,
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(16.dp))
+
+                    var showDatePicker by remember { mutableStateOf(false) }
+                    val datePickerState = rememberDatePickerState()
+
+                    Text(
+                        text = "textValue",
+                        textAlign = TextAlign.Left,
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable {
+                            showDatePicker = true
+                        }
+                    )
+
+                    if (showDatePicker) {
+                        DatePickerDialog(
+                            onDismissRequest = { showDatePicker = false },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        showDatePicker = false
+                                    }
+                                ) {
+                                    Text("OK")
+                                }
+                            }
+                        ) {
+                            DatePicker(state = datePickerState)
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun AddHabitFab(onClick: () -> Unit) {
+        FloatingActionButton(
+            onClick = onClick,
+            modifier = Modifier.size(76.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = "Add Habit",
+                modifier = Modifier.size(38.dp)
+            )
+        }
+    }
+
+    @Composable
+    private fun HeaderSection() {
         var search by remember { mutableStateOf("") }
 
         Row(
@@ -74,13 +239,12 @@ class MainActivity : ComponentActivity() {
                 .fillMaxWidth()
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
-
         ) {
             IconButton(
                 onClick = {},
                 modifier = Modifier
                     .size(52.dp)
-                    .semantics{ contentDescription = "Open Menu"}
+                    .semantics { contentDescription = "Open Menu" }
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Menu,
@@ -92,12 +256,11 @@ class MainActivity : ComponentActivity() {
 
             OutlinedTextField(
                 value = search,
-                onValueChange = {},
+                onValueChange = { search = it },
                 singleLine = true,
                 placeholder = { Text("Enter habit name") },
                 label = { Text("Search") },
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             )
 
             Spacer(Modifier.width(12.dp))
@@ -106,7 +269,7 @@ class MainActivity : ComponentActivity() {
                 onClick = {},
                 modifier = Modifier
                     .size(48.dp)
-                    .semantics{ contentDescription = "No AD"}
+                    .semantics { contentDescription = "No AD" }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_no_ad),
@@ -114,28 +277,6 @@ class MainActivity : ComponentActivity() {
                     tint = Color.Unspecified
                 )
             }
-        }
-    }
-
-    @Composable
-    private fun HabitItem(){
-
-    }
-
-    @Composable
-    private fun AddHabitButton(){
-        IconButton(
-            onClick = {},
-            modifier = Modifier
-                .size(64.dp)
-                .semantics{ contentDescription = "Add Habit"}
-
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Add,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp)
-            )
         }
     }
 }
